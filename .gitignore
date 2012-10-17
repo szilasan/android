@@ -1,9 +1,13 @@
 # generated files #
 ###################
-InstaTrace2/bin/
-InstaTrace2/gen/
+bin/
+gen/
 
 # OS X #
 ########
 __MACOSX/
 .DS_Store
+
+# Windows #
+###########
+Thumbs.db
