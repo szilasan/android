@@ -1,13 +1,6 @@
-# generated files #
-###################
+.settings/
 bin/
 gen/
-
-# OS X #
-########
 __MACOSX/
 .DS_Store
-
-# Windows #
-###########
 Thumbs.db
