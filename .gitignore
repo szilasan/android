@@ -2,3 +2,8 @@
 ###################
 InstaTrace2/bin/
 InstaTrace2/gen/
+
+# OS X #
+########
+__MACOSX/
+.DS_Store
