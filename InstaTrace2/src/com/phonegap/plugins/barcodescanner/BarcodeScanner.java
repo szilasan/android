@@ -92,6 +92,7 @@ public class BarcodeScanner extends Plugin {
     	// Check HTC manufacturer
         if ("HTC".equals(Build.MANUFACTURER)){
             intentScan = new Intent(this.ctx.getContext(), CaptureActivity.class);
+        	// Intent intent = new Intent("com.google.zxing.client.android.SCAN");
         }else{
         	intentScan = new Intent("com.phonegap.plugins.barcodescanner.SCAN");
             intentScan.addCategory(Intent.CATEGORY_DEFAULT);
