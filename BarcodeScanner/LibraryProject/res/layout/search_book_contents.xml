@@ -17,7 +17,8 @@
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
               android:orientation="vertical"
               android:layout_width="fill_parent"
-              android:layout_height="fill_parent">
+              android:layout_height="fill_parent"
+              android:background="@color/sbc_layout_view">
 
   <LinearLayout
       android:orientation="horizontal"
@@ -31,8 +32,7 @@
               android:layout_gravity="left|center_vertical"
               android:layout_weight="1"
               android:singleLine="true"
-              android:selectAllOnFocus="true"
-              android:inputType="text"/>
+              android:selectAllOnFocus="true"/>
 
     <Button android:id="@+id/query_button"
             android:layout_width="wrap_content"

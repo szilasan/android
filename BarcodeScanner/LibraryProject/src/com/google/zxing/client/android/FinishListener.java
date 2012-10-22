@@ -24,7 +24,8 @@ import android.content.DialogInterface;
  *
  * @author Sean Owen
  */
-public final class FinishListener implements DialogInterface.OnClickListener, DialogInterface.OnCancelListener {
+public final class FinishListener
+    implements DialogInterface.OnClickListener, DialogInterface.OnCancelListener, Runnable {
 
   private final Activity activityToFinish;
 
@@ -32,17 +33,15 @@ public final class FinishListener implements DialogInterface.OnClickListener, Di
     this.activityToFinish = activityToFinish;
   }
 
-  @Override
   public void onCancel(DialogInterface dialogInterface) {
     run();
   }
 
-  @Override
   public void onClick(DialogInterface dialogInterface, int i) {
     run();
   }
 
-  private void run() {
+  public void run() {
     activityToFinish.finish();
   }
 

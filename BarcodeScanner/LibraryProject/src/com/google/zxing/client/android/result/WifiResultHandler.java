@@ -16,33 +16,23 @@
 
 package com.google.zxing.client.android.result;
 
-import android.content.Context;
-import android.net.wifi.WifiManager;
-import android.widget.Toast;
-
-import com.google.zxing.client.android.CaptureActivity;
+import android.app.Activity;
 import com.google.zxing.client.android.R;
-import com.google.zxing.client.android.common.executor.AsyncTaskExecInterface;
-import com.google.zxing.client.android.common.executor.AsyncTaskExecManager;
-import com.google.zxing.client.android.wifi.WifiConfigManager;
 import com.google.zxing.client.result.ParsedResult;
 import com.google.zxing.client.result.WifiParsedResult;
 
 /**
  * Handles address book entries.
  *
- * @author Vikram Aggarwal
- * @author Sean Owen
+ * @author viki@google.com (Vikram Aggarwal)
  */
 public final class WifiResultHandler extends ResultHandler {
 
-  private final CaptureActivity parent;
-  private final AsyncTaskExecInterface taskExec;
+  private final Activity parent;
 
-  public WifiResultHandler(CaptureActivity activity, ParsedResult result) {
+  public WifiResultHandler(Activity activity, ParsedResult result) {
     super(activity, result);
     parent = activity;
-    taskExec = new AsyncTaskExecManager().build();
   }
 
   @Override
@@ -53,17 +43,18 @@ public final class WifiResultHandler extends ResultHandler {
 
   @Override
   public int getButtonText(int index) {
-    return R.string.button_wifi;
+    if (index == 0) {
+      return R.string.button_wifi;
+    }
+    throw new ArrayIndexOutOfBoundsException();
   }
 
   @Override
   public void handleButtonPress(int index) {
+    // Get the underlying wifi config
+    WifiParsedResult wifiResult = (WifiParsedResult) getResult();
     if (index == 0) {
-      WifiParsedResult wifiResult = (WifiParsedResult) getResult();
-      WifiManager wifiManager = (WifiManager) getActivity().getSystemService(Context.WIFI_SERVICE);
-      Toast.makeText(getActivity(), R.string.wifi_changing_network, Toast.LENGTH_LONG).show();
-      taskExec.execute(new WifiConfigManager(wifiManager), wifiResult);
-      parent.restartPreviewAfterDelay(0L);
+      wifiConnect(wifiResult);
     }
   }
 
@@ -71,7 +62,7 @@ public final class WifiResultHandler extends ResultHandler {
   @Override
   public CharSequence getDisplayContents() {
     WifiParsedResult wifiResult = (WifiParsedResult) getResult();
-    StringBuilder contents = new StringBuilder(50);
+    StringBuffer contents = new StringBuffer(50);
     String wifiLabel = parent.getString(R.string.wifi_ssid_label);
     ParsedResult.maybeAppend(wifiLabel + '\n' + wifiResult.getSsid(), contents);
     String typeLabel = parent.getString(R.string.wifi_type_label);

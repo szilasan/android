@@ -65,7 +65,7 @@ public final class SMSResultHandler extends ResultHandler {
   @Override
   public CharSequence getDisplayContents() {
     SMSParsedResult smsResult = (SMSParsedResult) getResult();
-    StringBuilder contents = new StringBuilder(50);
+    StringBuffer contents = new StringBuffer(50);
     String[] rawNumbers = smsResult.getNumbers();
     String[] formattedNumbers = new String[rawNumbers.length];
     for (int i = 0; i < rawNumbers.length; i++) {

@@ -23,8 +23,6 @@ import com.google.zxing.client.result.URIParsedResult;
 
 import android.app.Activity;
 
-import java.util.Locale;
-
 /**
  * Offers appropriate actions for URLS.
  *
@@ -33,7 +31,7 @@ import java.util.Locale;
 public final class URIResultHandler extends ResultHandler {
   // URIs beginning with entries in this array will not be saved to history or copied to the
   // clipboard for security.
-  private static final String[] SECURE_PROTOCOLS = {
+  private static final String[] SECURE_PROTOCOLS = new String[] {
     "otpauth:"
   };
 
@@ -89,7 +87,7 @@ public final class URIResultHandler extends ResultHandler {
   @Override
   public boolean areContentsSecure() {
     URIParsedResult uriResult = (URIParsedResult) getResult();
-    String uri = uriResult.getURI().toLowerCase(Locale.ENGLISH);
+    String uri = uriResult.getURI().toLowerCase();
     for (String secure : SECURE_PROTOCOLS) {
       if (uri.startsWith(secure)) {
         return true;

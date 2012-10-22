@@ -17,130 +17,102 @@
 package com.google.zxing.client.android.result.supplement;
 
 import android.content.Context;
-import android.os.AsyncTask;
-import android.text.Spannable;
-import android.text.SpannableString;
+import android.content.Intent;
+import android.net.Uri;
+import android.os.Handler;
+import android.text.Html;
 import android.text.Spanned;
-import android.text.method.LinkMovementMethod;
-import android.text.style.URLSpan;
-import android.util.Log;
+import android.view.View;
 import android.widget.TextView;
-
-import java.io.IOException;
-import java.lang.ref.WeakReference;
-import java.util.ArrayList;
-import java.util.List;
-
-import com.google.zxing.client.android.common.executor.AsyncTaskExecInterface;
-import com.google.zxing.client.android.common.executor.AsyncTaskExecManager;
-import com.google.zxing.client.android.history.HistoryManager;
 import com.google.zxing.client.result.ISBNParsedResult;
 import com.google.zxing.client.result.ParsedResult;
 import com.google.zxing.client.result.ProductParsedResult;
 import com.google.zxing.client.result.URIParsedResult;
 
-public abstract class SupplementalInfoRetriever extends AsyncTask<Object,Object,Object> {
+import java.io.IOException;
+import java.lang.ref.WeakReference;
+import java.util.concurrent.Callable;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+import java.util.concurrent.Future;
+import java.util.concurrent.ThreadFactory;
+import java.util.concurrent.TimeUnit;
 
-  private static final String TAG = "SupplementalInfo";
+public abstract class SupplementalInfoRetriever implements Callable<Void> {
 
-  public static void maybeInvokeRetrieval(TextView textView,
-                                          ParsedResult result,
-                                          HistoryManager historyManager,
-                                          Context context) {
-    AsyncTaskExecInterface taskExec = new AsyncTaskExecManager().build();
+  private static ExecutorService executorInstance = null;
+
+  private static synchronized ExecutorService getExecutorService() {
+    if (executorInstance == null) {
+      executorInstance = Executors.newCachedThreadPool(new ThreadFactory() {
+        public Thread newThread(Runnable r) {
+          Thread t = new Thread(r);
+          t.setDaemon(true);
+          return t;
+        }
+      });
+    }
+    return executorInstance;
+  }
+
+  public static void maybeInvokeRetrieval(TextView textView, ParsedResult result, Handler handler,
+      Context context) {
+    SupplementalInfoRetriever retriever = null;
     if (result instanceof URIParsedResult) {
-      taskExec.execute(new URIResultInfoRetriever(textView, (URIParsedResult) result, historyManager, context));
-      taskExec.execute(new TitleRetriever(textView, (URIParsedResult) result, historyManager));
+      retriever = new URIResultInfoRetriever(textView, (URIParsedResult) result, handler, context);
     } else if (result instanceof ProductParsedResult) {
-      String productID = ((ProductParsedResult) result).getProductID();
-      taskExec.execute(new ProductResultInfoRetriever(textView, productID, historyManager, context));
+      retriever = new ProductResultInfoRetriever(textView,
+          ((ProductParsedResult) result).getProductID(), handler, context);
     } else if (result instanceof ISBNParsedResult) {
-      String isbn = ((ISBNParsedResult) result).getISBN();
-      taskExec.execute(new ProductResultInfoRetriever(textView, isbn, historyManager, context));
-      taskExec.execute(new BookResultInfoRetriever(textView, isbn, historyManager, context));
+      retriever = new ProductResultInfoRetriever(textView, ((ISBNParsedResult) result).getISBN(),
+          handler, context);
+    }
+    if (retriever != null) {
+      ExecutorService executor = getExecutorService();
+      Future<?> future = executor.submit(retriever);
+      // Make sure it's interrupted after a short time though
+      executor.submit(new KillerCallable(future, 10, TimeUnit.SECONDS));
     }
   }
 
   private final WeakReference<TextView> textViewRef;
-  private final WeakReference<HistoryManager> historyManagerRef;
-  private final List<Spannable> newContents;
-  private final List<String[]> newHistories;
+  private final Handler handler;
+  private final Context context;
 
-  SupplementalInfoRetriever(TextView textView, HistoryManager historyManager) {
-    textViewRef = new WeakReference<TextView>(textView);
-    historyManagerRef = new WeakReference<HistoryManager>(historyManager);
-    newContents = new ArrayList<Spannable>();
-    newHistories = new ArrayList<String[]>();
+  SupplementalInfoRetriever(TextView textView, Handler handler, Context context) {
+    this.textViewRef = new WeakReference<TextView>(textView);
+    this.handler = handler;
+    this.context = context;
   }
 
-  @Override
-  public final Object doInBackground(Object... args) {
-    try {
-      retrieveSupplementalInfo();
-    } catch (IOException e) {
-      Log.w(TAG, e);
-    }
+  public final Void call() throws IOException, InterruptedException {
+    retrieveSupplementalInfo();
     return null;
   }
 
-  @Override
-  protected void onPostExecute(Object arg) {
-    TextView textView = textViewRef.get();
-    if (textView != null) {
-      for (Spannable content : newContents) {
-        textView.append(content);
-      }
-      textView.setMovementMethod(LinkMovementMethod.getInstance());
+  abstract void retrieveSupplementalInfo() throws IOException, InterruptedException;
+
+  final void append(final String newText) throws InterruptedException {
+    final TextView textView = textViewRef.get();
+    if (textView == null) {
+      throw new InterruptedException();
     }
-    HistoryManager historyManager = historyManagerRef.get();
-    if (historyManager != null) {
-      for (String[] text : newHistories) {
-        historyManager.addHistoryItemDetails(text[0], text[1]);
+    handler.post(new Runnable() {
+      public void run() {
+        Spanned html = Html.fromHtml(newText + '\n');
+        textView.append(html);
       }
-    }
+    });
   }
 
-  abstract void retrieveSupplementalInfo() throws IOException;
-
-  final void append(String itemID, String source, String[] newTexts, String linkURL) {
-
-    StringBuilder newTextCombined = new StringBuilder();
-
-    if (source != null) {
-      newTextCombined.append(source).append(" : ");
-    }
-
-    int linkStart = newTextCombined.length();
-
-    boolean first = true;
-    for (String newText : newTexts) {
-      if (first) {
-        newTextCombined.append(newText);
-        first = false;
-      } else {
-        newTextCombined.append(" [");
-        newTextCombined.append(newText);
-        newTextCombined.append(']');
+  final void setLink(final String uri) {
+    textViewRef.get().setOnClickListener(new View.OnClickListener() {
+      public void onClick(View view) {
+        Intent intent = new Intent(Intent.ACTION_VIEW, Uri.parse(uri));
+        intent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_WHEN_TASK_RESET);
+        context.startActivity(intent);
       }
-    }
-
-    int linkEnd = newTextCombined.length();
-
-    String newText = newTextCombined.toString();
-    Spannable content = new SpannableString(newText + "\n\n");
-    if (linkURL != null) {
-      // Strangely, some Android browsers don't seem to register to handle HTTP:// or HTTPS://.
-      // Lower-case these as it should always be OK to lower-case these schemes.
-      if (linkURL.startsWith("HTTP://")) {
-        linkURL = "http" + linkURL.substring(4);
-      } else if (linkURL.startsWith("HTTPS://")) {
-        linkURL = "https" + linkURL.substring(5);
-      }
-      content.setSpan(new URLSpan(linkURL), linkStart, linkEnd, Spanned.SPAN_EXCLUSIVE_EXCLUSIVE);
-    }
-
-    newContents.add(content);
-    newHistories.add(new String[] {itemID, newText});
+    });
   }
 
 }

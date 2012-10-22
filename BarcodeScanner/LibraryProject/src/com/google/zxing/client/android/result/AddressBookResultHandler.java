@@ -27,10 +27,9 @@ import android.text.SpannableString;
 import android.text.style.StyleSpan;
 
 import java.text.DateFormat;
-import java.text.ParseException;
+import java.text.ParsePosition;
 import java.text.SimpleDateFormat;
 import java.util.Date;
-import java.util.Locale;
 
 /**
  * Handles address book entries.
@@ -40,22 +39,10 @@ import java.util.Locale;
 public final class AddressBookResultHandler extends ResultHandler {
 
   private static final DateFormat[] DATE_FORMATS = {
-    new SimpleDateFormat("yyyyMMdd", Locale.ENGLISH),
-    new SimpleDateFormat("yyyyMMdd'T'HHmmss", Locale.ENGLISH),
-    new SimpleDateFormat("yyyy-MM-dd", Locale.ENGLISH),
-    new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss", Locale.ENGLISH),
-  };
-  static {
-    for (DateFormat format : DATE_FORMATS) {
-      format.setLenient(false);
-    }
-  }
-
-  private static final int[] BUTTON_TEXTS = {
-    R.string.button_add_contact,
-    R.string.button_show_map,
-    R.string.button_dial,
-    R.string.button_email,
+    new SimpleDateFormat("yyyyMMdd"),
+    new SimpleDateFormat("yyyyMMdd'T'HHmmss"),
+    new SimpleDateFormat("yyyy-MM-dd"),
+    new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss"),
   };
 
   private final boolean[] fields;
@@ -109,7 +96,19 @@ public final class AddressBookResultHandler extends ResultHandler {
 
   @Override
   public int getButtonText(int index) {
-    return BUTTON_TEXTS[mapIndexToAction(index)];
+    int action = mapIndexToAction(index);
+    switch (action) {
+      case 0:
+        return R.string.button_add_contact;
+      case 1:
+        return R.string.button_show_map;
+      case 2:
+        return R.string.button_dial;
+      case 3:
+        return R.string.button_email;
+      default:
+        throw new ArrayIndexOutOfBoundsException();
+    }
   }
 
   @Override
@@ -117,25 +116,13 @@ public final class AddressBookResultHandler extends ResultHandler {
     AddressBookParsedResult addressResult = (AddressBookParsedResult) getResult();
     String[] addresses = addressResult.getAddresses();
     String address1 = addresses == null || addresses.length < 1 ? null : addresses[0];
-    String[] addressTypes = addressResult.getAddressTypes();
-    String address1Type = addressTypes == null || addressTypes.length < 1 ? null : addressTypes[0];
     int action = mapIndexToAction(index);
     switch (action) {
       case 0:
-        addContact(addressResult.getNames(),
-                   addressResult.getPronunciation(),
-                   addressResult.getPhoneNumbers(),
-                   addressResult.getPhoneTypes(),
-                   addressResult.getEmails(),
-                   addressResult.getEmailTypes(),
-                   addressResult.getNote(),
-                   addressResult.getInstantMessenger(),
-                   address1,
-                   address1Type,
-                   addressResult.getOrg(),
-                   addressResult.getTitle(),
-                   addressResult.getURL(),
-                   addressResult.getBirthday());
+        addContact(addressResult.getNames(), addressResult.getPhoneNumbers(),
+            addressResult.getEmails(), addressResult.getNote(),
+            address1, addressResult.getOrg(),
+            addressResult.getTitle());
         break;
       case 1:
         String[] names = addressResult.getNames();
@@ -154,11 +141,13 @@ public final class AddressBookResultHandler extends ResultHandler {
   }
 
   private static Date parseDate(String s) {
-    for (DateFormat currentFormat : DATE_FORMATS) {
-      try {
-        return currentFormat.parse(s);
-      } catch (ParseException e) {
-        // continue
+    for (DateFormat currentFomat : DATE_FORMATS) {
+      synchronized (currentFomat) {
+        currentFomat.setLenient(false);
+        Date result = currentFomat.parse(s, new ParsePosition(0));
+        if (result != null) {
+          return result;
+        }
       }
     }
     return null;
@@ -168,7 +157,7 @@ public final class AddressBookResultHandler extends ResultHandler {
   @Override
   public CharSequence getDisplayContents() {
     AddressBookParsedResult result = (AddressBookParsedResult) getResult();
-    StringBuilder contents = new StringBuilder(100);
+    StringBuffer contents = new StringBuffer(100);
     ParsedResult.maybeAppend(result.getNames(), contents);
     int namesLength = contents.length();
 
@@ -195,7 +184,7 @@ public final class AddressBookResultHandler extends ResultHandler {
     if (birthday != null && birthday.length() > 0) {
       Date date = parseDate(birthday);
       if (date != null) {
-        ParsedResult.maybeAppend(DateFormat.getDateInstance(DateFormat.MEDIUM).format(date.getTime()), contents);
+        ParsedResult.maybeAppend(DateFormat.getDateInstance().format(date.getTime()), contents);
       }
     }
     ParsedResult.maybeAppend(result.getNote(), contents);

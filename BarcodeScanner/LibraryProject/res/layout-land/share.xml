@@ -25,7 +25,8 @@
   <TextView
       android:layout_width="fill_parent"
       android:layout_height="wrap_content"
-      android:gravity="center"
+      android:textColor="@color/share_text"
+      android:textSize="18sp"
       android:text="@string/msg_share_explanation"
       android:paddingBottom="12dip"/>
 
@@ -83,6 +84,7 @@
   <EditText android:id="@+id/share_text_view"
             android:layout_width="fill_parent"
             android:layout_height="wrap_content"
+            android:textSize="16sp"
             android:hint="@string/msg_share_text"
             android:singleLine="true"
             android:selectAllOnFocus="true"/>

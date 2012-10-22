@@ -22,6 +22,8 @@ import com.google.zxing.client.result.ISBNParsedResult;
 import com.google.zxing.client.result.ParsedResult;
 
 import android.app.Activity;
+import android.app.AlertDialog;
+import android.content.DialogInterface;
 import android.view.View;
 
 /**
@@ -40,7 +42,6 @@ public final class ISBNResultHandler extends ResultHandler {
   public ISBNResultHandler(Activity activity, ParsedResult result, Result rawResult) {
     super(activity, result, rawResult);
     showGoogleShopperButton(new View.OnClickListener() {
-      @Override
       public void onClick(View view) {
         ISBNParsedResult isbnResult = (ISBNParsedResult) getResult();
         openGoogleShopper(isbnResult.getISBN());
@@ -59,22 +60,26 @@ public final class ISBNResultHandler extends ResultHandler {
   }
 
   @Override
-  public void handleButtonPress(int index) {
-    ISBNParsedResult isbnResult = (ISBNParsedResult) getResult();
-    switch (index) {
-      case 0:
-        openProductSearch(isbnResult.getISBN());
-        break;
-      case 1:
-        openBookSearch(isbnResult.getISBN());
-        break;
-      case 2:
-        searchBookContents(isbnResult.getISBN());
-        break;
-      case 3:
-        openURL(fillInCustomSearchURL(isbnResult.getISBN()));
-        break;
-    }
+  public void handleButtonPress(final int index) {
+    showNotOurResults(index, new AlertDialog.OnClickListener() {
+      public void onClick(DialogInterface dialogInterface, int i) {
+        ISBNParsedResult isbnResult = (ISBNParsedResult) getResult();
+        switch (index) {
+          case 0:
+            openProductSearch(isbnResult.getISBN());
+            break;
+          case 1:
+            openBookSearch(isbnResult.getISBN());
+            break;
+          case 2:
+            searchBookContents(isbnResult.getISBN());
+            break;
+          case 3:
+            openURL(fillInCustomSearchURL(isbnResult.getISBN()));
+            break;
+        }
+      }
+    });
   }
 
   @Override
