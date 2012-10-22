@@ -15,7 +15,7 @@ public class GeolocationApiHelper extends BaseApiHelper {
     }
 
     public void sendLocation(String token, double longitude, double latitude) {
-        final String endpoint = "http://216.144.253.113/api/driver/locations";
+        final String endpoint = "http://api.instatrace.com/api/driver/locations";
         final StringBuilder params = new StringBuilder();
         final Request.Builder builder = new Builder(endpoint + params.toString(), RequestMethod.POST);
         builder.addBodyParam("location[longitude]", String.valueOf(longitude));
