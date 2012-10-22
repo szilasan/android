@@ -33,7 +33,7 @@ import java.util.List;
  *
  * @author Sean Owen
  */
-final class LoadPackagesAsyncTask extends AsyncTask<List<String[]>, Void, List<String[]>> {
+final class LoadPackagesAsyncTask extends AsyncTask<List<String[]>,Object,List<String[]>> {
 
   private static final String[] PKG_PREFIX_WHITELIST = {
       "com.google.android.apps.",
@@ -98,6 +98,7 @@ final class LoadPackagesAsyncTask extends AsyncTask<List<String[]>, Void, List<S
   }
 
   private static class ByFirstStringComparator implements Comparator<String[]>, Serializable {
+    @Override
     public int compare(String[] o1, String[] o2) {
       return o1[0].compareTo(o2[0]);
     }

@@ -1,0 +1,6 @@
+.settings/
+bin/
+gen/
+__MACOSX/
+.DS_Store
+Thumbs.db

@@ -20,6 +20,8 @@ import android.util.Log;
 import org.apache.cordova.api.Plugin;
 import org.apache.cordova.api.PluginResult;
 
+import com.google.zxing.client.android.CaptureActivity;
+
 /**
  * This calls out to the ZXing barcode reader and returns the result.
  */
@@ -89,11 +91,12 @@ public class BarcodeScanner extends Plugin {
         Intent intentScan = null;
     	// Check HTC manufacturer
         if ("HTC".equals(Build.MANUFACTURER)){
-        	intentScan = new Intent("com.google.zxing.client.android.SCAN");
+            intentScan = new Intent(this.ctx.getContext(), CaptureActivity.class);
+        	// Intent intent = new Intent("com.google.zxing.client.android.SCAN");
         }else{
         	intentScan = new Intent("com.phonegap.plugins.barcodescanner.SCAN");
-        }   
-        intentScan.addCategory(Intent.CATEGORY_DEFAULT);
+            intentScan.addCategory(Intent.CATEGORY_DEFAULT);
+        }
 
         this.ctx.startActivityForResult((Plugin) this, intentScan, REQUEST_CODE);
     }
