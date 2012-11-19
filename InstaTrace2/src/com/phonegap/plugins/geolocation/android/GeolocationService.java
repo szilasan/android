@@ -25,7 +25,7 @@ public class GeolocationService extends Service {
     public static final String TOKEN_EXTERNAL = "com.phonegap.plugins.geolocation.android.TOKEN_EXTERNAL";
     private static final String TAG = GeolocationService.class.getName();
 
-    private static long TIME_LOCATION_UPDATES = 5 * 60 * 1000;
+    private static long TIME_LOCATION_UPDATES = 20 * 60 * 1000;
     private static long TIME_LOCATION_SEND = 3 * 60 * 1000;
     protected static final int ONE_MINUTE = 1000 * 60 * 1;
     protected static final int TWO_MINUTES = 1000 * 60 * 2;
@@ -93,6 +93,7 @@ public class GeolocationService extends Service {
         	    	if (isBetterLocation(location, currentBestLocation)) {
                         currentBestLocation = location;
                         sendLocation(token, currentBestLocation);
+                        Log.e(TAG, "=======Instatrace Service Location Change =======");
                     }
 
         	    }
@@ -106,8 +107,8 @@ public class GeolocationService extends Service {
 
         	 };
             // We query every available location providers
-            mLocationManager.requestLocationUpdates(LocationManager.GPS_PROVIDER, TIME_LOCATION_UPDATES, 0, mLocationListener);
-            mLocationManager.requestLocationUpdates(LocationManager.NETWORK_PROVIDER, TIME_LOCATION_UPDATES, 0, mLocationListener);
+            mLocationManager.requestLocationUpdates(LocationManager.GPS_PROVIDER, TIME_LOCATION_UPDATES, 10, mLocationListener);
+            mLocationManager.requestLocationUpdates(LocationManager.NETWORK_PROVIDER, TIME_LOCATION_UPDATES, 10, mLocationListener);
 
             Location location = mLocationManager.getLastKnownLocation(LocationManager.GPS_PROVIDER);
             if (location == null)
@@ -116,7 +117,8 @@ public class GeolocationService extends Service {
                 if (location != null) {
                     if (isBetterLocation(location, currentBestLocation)) {
                         currentBestLocation = location;
-                        sendLocation(token, currentBestLocation);                        
+                        sendLocation(token, currentBestLocation);         
+                        Log.e(TAG, "=======Instatrace Service LastKnownLocation =======");
                     }
                 }
             }
@@ -230,6 +232,7 @@ public class GeolocationService extends Service {
        long timeDelta = location.getTime() - currentBestLocation.getTime();
        boolean isSignificantlyNewer = timeDelta > TWO_MINUTES;
        boolean isSignificantlyOlder = timeDelta < -TWO_MINUTES;
+       
        boolean isNewer = timeDelta > 0;
 
        // If it's been more than two minutes since the current location, use the new location
@@ -253,7 +256,7 @@ public class GeolocationService extends Service {
        // Determine location quality using a combination of timeliness and accuracy
        if (isMoreAccurate) {
            return true;
-       } else if (isNewer && !isLessAccurate) {
+       } else if (isNewer && !isLessAccurate) {	       
            return true;
        } else if (isNewer && !isSignificantlyLessAccurate && isFromSameProvider) {
            return true;
