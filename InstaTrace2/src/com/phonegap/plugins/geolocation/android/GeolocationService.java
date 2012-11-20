@@ -18,19 +18,19 @@ import com.mobilezapp.instatrace.R;
 
 import java.lang.reflect.Method;
 import java.util.Timer;
-import java.util.TimerTask;
+
 
 public class GeolocationService extends Service {
 
-    public static final String TOKEN_EXTERNAL = "com.phonegap.plugins.geolocation.android.TOKEN_EXTERNAL";
+    //public static final String TOKEN_EXTERNAL = "com.phonegap.plugins.geolocation.android.TOKEN_EXTERNAL";
     private static final String TAG = GeolocationService.class.getName();
 
-    private static long TIME_LOCATION_UPDATES = 20 * 60 * 1000;
-    private static long TIME_LOCATION_SEND = 3 * 60 * 1000;
+    private static long TIME_LOCATION_UPDATES = 5 * 60 * 1000;
+    //private static long TIME_LOCATION_SEND = 3 * 60 * 1000;
     protected static final int ONE_MINUTE = 1000 * 60 * 1;
     protected static final int TWO_MINUTES = 1000 * 60 * 2;
-    public static final String PACKAGE_NAME = "com.phonegap.plugins.geolocation.android";
-    public static final String LOCATION_UPDATE_ACTION = "com.phonegap.plugins.geolocation.android.action.ACTION_FRESH_LOCATION";
+    //public static final String PACKAGE_NAME = "com.phonegap.plugins.geolocation.android";
+    //public static final String LOCATION_UPDATE_ACTION = "com.phonegap.plugins.geolocation.android.action.ACTION_FRESH_LOCATION";
 
 
     //private static String mPackageName;
@@ -86,6 +86,7 @@ public class GeolocationService extends Service {
             }
             catch(Exception e) {
             }
+        	mApiHelper = new GeolocationApiHelper(this, null);
         	mLocationManager = (LocationManager) getSystemService(Context.LOCATION_SERVICE);
         	mLocationListener = new LocationListener() {
         	    public void onLocationChanged(Location location) {
@@ -107,8 +108,8 @@ public class GeolocationService extends Service {
 
         	 };
             // We query every available location providers
-            mLocationManager.requestLocationUpdates(LocationManager.GPS_PROVIDER, TIME_LOCATION_UPDATES, 10, mLocationListener);
-            mLocationManager.requestLocationUpdates(LocationManager.NETWORK_PROVIDER, TIME_LOCATION_UPDATES, 10, mLocationListener);
+            mLocationManager.requestLocationUpdates(LocationManager.GPS_PROVIDER, TIME_LOCATION_UPDATES, 0, mLocationListener);
+            mLocationManager.requestLocationUpdates(LocationManager.NETWORK_PROVIDER, TIME_LOCATION_UPDATES, 0, mLocationListener);
 
             Location location = mLocationManager.getLastKnownLocation(LocationManager.GPS_PROVIDER);
             if (location == null)
@@ -124,7 +125,7 @@ public class GeolocationService extends Service {
             }
        	
         	
-            mApiHelper = new GeolocationApiHelper(this, null);
+           
            // startTimer(token);
             Log.e(TAG, "=======Instatrace Service Starting =======");
         }
@@ -172,7 +173,11 @@ public class GeolocationService extends Service {
     private void sendLocation(String token, Location location) {
         double longitude = location.getLongitude();
         double latitude = location.getLatitude();
-        mApiHelper.sendLocation(token, longitude, latitude);
+        if(mApiHelper!=null){
+        	mApiHelper.sendLocation(token, longitude, latitude);	
+        	 Log.e(TAG, "=======Instatrace Service Locaton sending =======");
+        }
+        
     }
 
     
