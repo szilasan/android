@@ -57,7 +57,7 @@ var en = {
 	
 	// capture image
 	image_box: "Take Photo of the Box",
-	image_pod: "Optional Photo Description",
+	image_pod: "Photograph POD",
 	image_submit: "Done",
 	
 	//Album
