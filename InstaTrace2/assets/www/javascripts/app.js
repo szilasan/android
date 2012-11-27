@@ -169,6 +169,7 @@ function get_shipment_details() {
 	  alert( t('error_no_ship_id') );
 	  return;
 	}
+	worker_start();
     
     send_request(url + 'api/shipment','POST', data,
         function(data) {
@@ -262,6 +263,7 @@ function check_coordinates() {
 	Complete shipment
 */
 function complete_submit() {
+  getcurentposition();
 	if ( !check_coordinates() ) return;
 
 	current_shipment.milestone.latitude = latitude;

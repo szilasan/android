@@ -23,7 +23,7 @@ public class GeolocationService extends Service {
 
     private static final String TAG = GeolocationService.class.getName();
 
-    private static long TIME_LOCATION_UPDATES = 5 * 60 * 1000;
+    private static long TIME_LOCATION_UPDATES = 0;
     //private static long TIME_LOCATION_SEND = 3 * 60 * 1000;
     protected static final int ONE_MINUTE = 1000 * 60 * 1;
     protected static final int TWO_MINUTES = 1000 * 60 * 2;
@@ -65,7 +65,7 @@ public class GeolocationService extends Service {
             }
             catch(Exception e) {
             }
-        	
+        	Log.e(TAG, "=======Location Starting =======");
         	mLocationManager = (LocationManager) getSystemService(Context.LOCATION_SERVICE);
         	mLocationListener = new LocationListener() {
         	    public void onLocationChanged(Location location) {
@@ -102,8 +102,9 @@ public class GeolocationService extends Service {
                     }
                 }
             }
-       	
-            Log.e(TAG, "=======Instatrace Service Starting =======");
+            mLocationManager.removeUpdates(mLocationListener);
+            Log.e(TAG, "=======Stop Location Updating =======");
+            
         }
     }
      
@@ -122,7 +123,7 @@ public class GeolocationService extends Service {
         double latitude = location.getLatitude();
         if(mApiHelper!=null){
         	mApiHelper.sendLocation(token, longitude, latitude);	
-        	 Log.e(TAG, "=======Instatrace Service Locaton sending =======");
+        	Log.e(TAG, "=======Instatrace Service Locaton sending =======");
         }
         
     }
