@@ -169,7 +169,6 @@ function get_shipment_details() {
 	  alert( t('error_no_ship_id') );
 	  return;
 	}
-	worker_start();
     
     send_request(url + 'api/shipment','POST', data,
         function(data) {
